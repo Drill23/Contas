@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Fluxo Financeiro">
+    <meta name="theme-color" content="#0a0a1a">
+
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' style='background:%230a0a1a'%3E%3Crect width='100%25' height='100%25' fill='%230a0a1a'/%3E%3Cpath d='M32 416h448' stroke='%234dff8a' stroke-width='32' stroke-linecap='round'/%3E%3Cpath d='M448 96L288 256 192 160 32 320' fill='none' stroke='%2300f2ff' stroke-width='32' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='448' cy='96' r='24' fill='%2300f2ff'/%3E%3Cpath d='M112 300l-60 60M192 210l-40 150M288 300l40-100' stroke='%23ff5964' stroke-width='20' stroke-linecap='round' opacity='0.5'/%3E%3C/svg%3E">
+
+    <title>Fluxo Financeiro Orgânico</title>
+    
+    <style>
+        /* --- FONTES --- */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        /* --- VARIÁVEIS --- */
+        :root {
+            --primary-text: #ffffff;
+            --secondary-text: #a0a0b0;
+            --bg-deep: #050510;
+            
+            --accent-cyan: #00f2ff;
+            --accent-green: #00ff9d;
+            --accent-red: #ff4757;
+            --accent-yellow: #ffa502;
+            
+            --glass-bg: rgba(20, 20, 35, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-blur: blur(20px);
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent; /* Remove highlight cinza no toque */
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--primary-text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            /* Respeita a área segura do iPhone (Notch e Home Bar) */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        /* --- BACKGROUND ANIMADO --- */
+        .aurora-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: radial-gradient(circle at 50% 50%, #0f0f1a 0%, #000000 100%);
+        }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+        .orb-1 { width: 300px; height: 300px; background: var(--accent-cyan); top: -50px; left: -50px; }
+        .orb-2 { width: 400px; height: 400px; background: var(--accent-red); bottom: -100px; right: -50px; animation-duration: 25s; }
+        .orb-3 { width: 200px; height: 200px; background: var(--accent-green); top: 40%; left: 40%; opacity: 0.2; animation-duration: 15s; }
+
+        @keyframes float { to { transform: translate(30px, 50px) scale(1.1); } }
+
+        /* --- LAYOUT PRINCIPAL --- */
+        main {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 100px; /* Espaço extra para scroll final */
+        }
+
+        header { margin-bottom: 30px; text-align: center; }
+        header h1 {
+            font-size: 1.8rem; font-weight: 700;
+            background: linear-gradient(to right, #fff, var(--accent-cyan));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        /* --- CARDS DE VIDRO --- */
+        .glass-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        /* --- DASHBOARD (RESUMO) --- */
+        .dashboard-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        }
+        .dash-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px; padding: 15px;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .dash-item.full { grid-column: 1 / -1; background: rgba(0, 242, 255, 0.05); border: 1px solid rgba(0, 242, 255, 0.1); }
+        
+        .dash-label { font-size: 0.75rem; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .dash-value { font-size: 1.4rem; font-weight: 600; }
+        
+        .val-green { color: var(--accent-green); }
+        .val-red { color: var(--accent-red); }
+        .val-yellow { color: var(--accent-yellow); }
+
+        /* INPUT INVISÍVEL PARA A RENDA */
+        .income-input {
+            background: transparent; border: none; color: #fff;
+            font-size: 1.8rem; font-weight: 700; width: 100%;
+            outline: none; border-bottom: 2px solid var(--accent-green);
+            padding: 5px 0;
+        }
+        .income-input::placeholder { color: rgba(255,255,255,0.2); }
+
+        /* --- FORMULÁRIOS --- */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.9rem; color: var(--secondary-text); margin-bottom: 8px; }
+        
+        input[type="text"], input[type="number"] {
+            width: 100%; padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: #fff; font-size: 1rem;
+            outline: none; transition: 0.3s;
+            -webkit-appearance: none; /* Estilo iOS */
+        }
+        input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 15px rgba(0, 242, 255, 0.1); }
+
+        /* --- TOGGLE SWITCH --- */
+        .share-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px;
+            margin-bottom: 15px; cursor: pointer;
+        }
+        .switch { position: relative; width: 50px; height: 30px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-cyan); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* --- ÁREA DE DIVISÃO (EXPANDIR) --- */
+        #share-section {
+            max-height: 0; overflow: hidden; opacity: 0;
+            transition: all 0.4s ease;
+        }
+        #share-section.visible { max-height: 500px; opacity: 1; margin-top: 15px; }
+
+        .tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .person-tag {
+            background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px;
+            font-size: 0.85rem; cursor: pointer; border: 1px solid transparent;
+        }
+        .person-tag.selected { background: var(--accent-cyan); color: #000; font-weight: 600; }
+
+        /* --- BOTÕES --- */
+        .btn {
+            width: 100%; padding: 16px; border-radius: 14px; border: none;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn:active { transform: scale(0.97); }
+        
+        .btn-primary { background: linear-gradient(135deg, var(--accent-cyan), #00c3ff); color: #000; box-shadow: 0 5px 20px rgba(0, 242, 255, 0.3); }
+        .btn-add-mini { width: auto; padding: 15px 20px; background: rgba(255,255,255,0.1); color: #fff; }
+        
+        /* --- LISTA DE CONTAS --- */
+        .bill-card {
+            margin-bottom: 15px; padding: 0; border-left: 5px solid var(--accent-yellow);
+            transition: opacity 0.3s;
+        }
+        .bill-card.paid { border-left-color: var(--accent-green); opacity: 0.7; }
+        
+        summary {
+            padding: 20px; display: flex; justify-content: space-between; align-items: center;
+            list-style: none; cursor: pointer;
+        }
+        summary::-webkit-details-marker { display: none; }
+        
+        .bill-title { font-size: 1.1rem; font-weight: 600; display: block; }
+        .bill-amount { color: var(--accent-green); font-weight: 500; font-size: 0.9rem; }
+        .bill-card.paid .bill-title { text-decoration: line-through; color: var(--secondary-text); }
+
+        .bill-actions {
+            display: flex; gap: 10px; padding: 20px; border-top: 1px solid var(--glass-border);
+        }
+        .btn-action { flex: 1; padding: 12px; font-size: 0.9rem; border-radius: 10px; }
+        .btn-pay { background: var(--accent-green); color: #004d2a; }
+        .btn-undo { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-del { background: rgba(255, 71, 87, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+
+        /* --- COBRANÇAS --- */
+        .owed-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px; border-bottom: 1px solid var(--glass-border);
+        }
+        .owed-item:last-child { border-bottom: none; }
+        .btn-notify { background: var(--accent-cyan); color: #000; padding: 8px 15px; border-radius: 8px; font-size: 0.8rem; border: none; }
+
+    </style>
+</head>
+<body>
+
+    <div class="aurora-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <main>
+        <header>
+            <h1>Financeiro 2.0</h1>
+        </header>
+
+        <section class="glass-card">
+            <div class="dashboard-grid">
+                <div class="dash-item full">
+                    <label class="dash-label">Minha Renda Mensal</label>
+                    <input type="number" id="monthly-income" class="income-input" placeholder="R$ 0,00" step="100">
+                </div>
+                
+                <div class="dash-item">
+                    <label class="dash-label">Minhas Despesas</label>
+                    <span id="my-expenses-share" class="dash-value">R$ 0,00</span>
+                </div>
+                
+                <div class="dash-item">
+                    <label class="dash-label">Saldo Livre</label>
+                    <span id="remaining-balance" class="dash-value val-green">R$ 0,00</span>
+                </div>
+                
+                <div class="dash-item full" style="background: rgba(0,0,0,0.2); border: none;">
+                    <label class="dash-label" style="display: flex; justify-content: space-between;">
+                        <span>Total das Contas</span>
+                        <span>(Eu + Outros)</span>
+                    </label>
+                    <span id="total-managed" class="dash-value" style="font-size: 1rem; color: #fff;">R$ 0,00</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-card">
+            <h2 style="font-size: 1.2rem; margin-bottom: 15px; color: var(--accent-cyan);">Nova Conta</h2>
+            <form id="bill-form">
+                <div class="form-group">
+                    <input type="text" id="bill-name" placeholder="Nome (ex: Luz, Mercado)" required>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="bill-value" placeholder="Valor (R$)" required min="0.01" step="0.01">
+                </div>
+
+                <div class="share-row" onclick="document.getElementById('is-shared-checkbox').click()">
+                    <span>Dividir essa conta?</span>
+                    <label class="switch">
+                        <input type="checkbox" id="is-shared-checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div id="share-section">
+                    <label>Quem vai dividir?</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="person-name" placeholder="Nome">
+                        <button type="button" id="add-person-btn" class="btn btn-add-mini">+</button>
+                    </div>
+                    
+                    <div id="current-sharers" class="tag-container" style="margin-bottom: 15px;"></div>
+                    
+                    <label style="margin-top: 10px;">Sugestões:</label>
+                    <div id="person-suggestions" class="tag-container"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 20px;">Adicionar ao Fluxo</button>
+            </form>
+        </section>
+
+        <div id="bills-container">
+            <h3 style="margin: 20px 0 10px 10px; font-size: 0.9rem; text-transform: uppercase; color: var(--secondary-text);">Contas do Mês</h3>
+            <div id="bills-list"></div>
+        </div>
+
+        <section class="glass-card" id="owed-section" style="display: none; margin-top: 30px;">
+            <h3 style="margin-bottom: 15px; color: var(--accent-yellow);">Resumo de Cobranças</h3>
+            <div id="owed-summary"></div>
+        </section>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- SELETORES ---
+        const monthlyIncomeInput = document.getElementById('monthly-income');
+        const myExpensesShareEl = document.getElementById('my-expenses-share');
+        const totalManagedEl = document.getElementById('total-managed');
+        const remainingBalanceEl = document.getElementById('remaining-balance');
+        const billForm = document.getElementById('bill-form');
+        const billNameInput = document.getElementById('bill-name');
+        const billValueInput = document.getElementById('bill-value');
+        const isSharedCheckbox = document.getElementById('is-shared-checkbox');
+        const shareSection = document.getElementById('share-section');
+        const personNameInput = document.getElementById('person-name');
+        const addPersonBtn = document.getElementById('add-person-btn');
+        const currentSharersContainer = document.getElementById('current-sharers');
+        const personSuggestionsContainer = document.getElementById('person-suggestions');
+        const billsListContainer = document.getElementById('bills-list');
+        const owedSummaryContainer = document.getElementById('owed-summary');
+        const owedSection = document.getElementById('owed-section');
+
+        // --- ESTADO ---
+        let state = {
+            monthlyIncome: 0,
+            bills: [],
+            knownPeople: new Set(),
+            currentBillSharers: new Set()
+        };
+
+        const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        
+        // --- PERSISTÊNCIA ---
+        const saveData = () => {
+            const dataToSave = {
+                monthlyIncome: state.monthlyIncome,
+                bills: state.bills,
+                knownPeople: Array.from(state.knownPeople)
+            };
+            localStorage.setItem('organicFluxApp', JSON.stringify(dataToSave));
+        };
+
+        const loadData = () => {
+            const savedData = localStorage.getItem('organicFluxApp');
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                state.monthlyIncome = parsedData.monthlyIncome || 0;
+                state.bills = (parsedData.bills || []).map(bill => ({...bill, isPaid: bill.isPaid || false}));
+                state.knownPeople = new Set(parsedData.knownPeople || []);
+                monthlyIncomeInput.value = state.monthlyIncome > 0 ? state.monthlyIncome : '';
+            }
+        };
+        
+        const render = () => {
+            renderSummary();
+            renderBillsList();
+            renderOwedSummary();
+            renderPersonSuggestions();
+            saveData();
+        };
+        
+        // --- CÁLCULOS ---
+        const renderSummary = () => {
+            let myExpensesShare = 0;
+            const totalManaged = state.bills.reduce((sum, bill) => sum + bill.value, 0);
+
+            state.bills.forEach(bill => {
+                if (bill.isShared && bill.people.length > 0) {
+                    const totalPeople = bill.people.length + 1; 
+                    myExpensesShare += bill.value / totalPeople;
+                } else {
+                    myExpensesShare += bill.value;
+                }
+            });
+
+            const remainingBalance = state.monthlyIncome - myExpensesShare;
+
+            myExpensesShareEl.textContent = formatCurrency(myExpensesShare);
+            totalManagedEl.textContent = formatCurrency(totalManaged);
+            remainingBalanceEl.textContent = formatCurrency(remainingBalance);
+            
+            remainingBalanceEl.className = 'dash-value'; // Reset
+            if (remainingBalance >= 0) {
+                const percentageUsed = state.monthlyIncome > 0 ? (myExpensesShare / state.monthlyIncome) : 0;
+                if (percentageUsed > 0.75) remainingBalanceEl.classList.add('val-yellow');
+                else remainingBalanceEl.classList.add('val-green');
+            } else {
+                remainingBalanceEl.classList.add('val-red');
+            }
+        };
+        
+        // --- RENDERIZAÇÃO DA LISTA ---
+        const renderBillsList = () => {
+            billsListContainer.innerHTML = '';
+            
+            // Ordenar: Pendentes primeiro
+            const sortedBills = [...state.bills].sort((a, b) => a.isPaid - b.isPaid);
+
+            if(sortedBills.length === 0) {
+                billsListContainer.innerHTML = '<div style="text-align:center; padding:20px; color:rgba(255,255,255,0.3);">Nenhuma conta adicionada.</div>';
+                return;
+            }
+
+            sortedBills.forEach(bill => {
+                const billDetails = document.createElement('details');
+                billDetails.className = `glass-card bill-card ${bill.isPaid ? 'paid' : ''}`;
+                
+                const totalPeople = bill.people.length + 1;
+                const individualShare = bill.value / totalPeople;
+                const myShare = bill.isShared ? individualShare : bill.value;
+
+                // Lógica de texto
+                let shareText = bill.isShared ? `Dividido em ${totalPeople}x` : 'Individual';
+
+                billDetails.innerHTML = `
+                    <summary>
+                        <div>
+                            <span class="bill-title">${bill.name}</span>
+                            <span style="font-size: 0.8rem; color: #888;">${shareText}</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="bill-amount">Minha parte: ${formatCurrency(myShare)}</div>
+                            <div style="font-size: 0.7rem; color: #666;">Total: ${formatCurrency(bill.value)}</div>
+                        </div>
+                    </summary>
+                    <div class="bill-actions">
+                        <button class="btn btn-action ${bill.isPaid ? 'btn-undo' : 'btn-pay'}" data-pay-id="${bill.id}">
+                            ${bill.isPaid ? 'Desmarcar' : '✔ Pagar'}
+                        </button>
+                        <button class="btn btn-action btn-del" data-del-id="${bill.id}">Remover</button>
+                    </div>
+                `;
+                billsListContainer.appendChild(billDetails);
+            });
+        };
+        
+        const renderOwedSummary = () => {
+            owedSummaryContainer.innerHTML = '';
+            const owedByPerson = {};
+            state.bills.forEach(bill => {
+                if(bill.isShared) {
+                    const individualShare = bill.value / (bill.people.length + 1);
+                    bill.people.forEach(person => {
+                        owedByPerson[person] = (owedByPerson[person] || 0) + individualShare;
+                    });
+                }
+            });
+            
+            const people = Object.keys(owedByPerson);
+            if (people.length > 0) {
+                owedSection.style.display = 'block';
+                people.forEach(person => {
+                    const div = document.createElement('div');
+                    div.className = 'owed-item';
+                    div.innerHTML = `
+                        <div>
+                            <div style="font-weight:600;">${person}</div>
+                            <div style="color:var(--accent-yellow); font-size:0.9rem;">${formatCurrency(owedByPerson[person])}</div>
+                        </div>
+                        <button class="btn-notify" data-notify-name="${person}" data-notify-amount="${owedByPerson[person]}">Cobrar 💬</button>
+                    `;
+                    owedSummaryContainer.appendChild(div);
+                });
+            } else {
+                owedSection.style.display = 'none';
+            }
+        };
+        
+        const renderPersonSuggestions = () => {
+            personSuggestionsContainer.innerHTML = '';
+            state.knownPeople.forEach(person => {
+                if (!state.currentBillSharers.has(person)) {
+                    const tag = document.createElement('div');
+                    tag.className = 'person-tag';
+                    tag.textContent = person; 
+                    tag.onclick = () => { state.currentBillSharers.add(person); renderCurrentSharers(); };
+                    personSuggestionsContainer.appendChild(tag);
+                }
+            });
+        };
+
+        const renderCurrentSharers = () => {
+            currentSharersContainer.innerHTML = '';
+            state.currentBillSharers.forEach(person => {
+                const tag = document.createElement('div');
+                tag.className = 'person-tag selected';
+                tag.textContent = `${person} ✕`; 
+                tag.onclick = () => { state.currentBillSharers.delete(person); renderCurrentSharers(); };
+                currentSharersContainer.appendChild(tag);
+            });
+            renderPersonSuggestions();
+        };
+
+        // --- EVENT LISTENERS ---
+        monthlyIncomeInput.addEventListener('input', (e) => {
+            state.monthlyIncome = parseFloat(e.target.value) || 0;
+            renderSummary(); saveData();
+        });
+
+        isSharedCheckbox.addEventListener('change', () => {
+            const sec = document.getElementById('share-section');
+            if(isSharedCheckbox.checked) sec.classList.add('visible');
+            else sec.classList.remove('visible');
+        });
+
+        addPersonBtn.addEventListener('click', () => {
+            const name = personNameInput.value.trim();
+            if (name) { state.currentBillSharers.add(name); personNameInput.value = ''; renderCurrentSharers(); }
+        });
+
+        billForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newBill = {
+                id: Date.now(), 
+                name: billNameInput.value.trim(), 
+                value: parseFloat(billValueInput.value),
+                isShared: isSharedCheckbox.checked,
+                people: isSharedCheckbox.checked ? Array.from(state.currentBillSharers) : [],
+                isPaid: false
+            };
+            state.bills.push(newBill);
+            if (newBill.isShared) newBill.people.forEach(p => state.knownPeople.add(p));
+            
+            billForm.reset(); 
+            state.currentBillSharers.clear();
+            document.getElementById('share-section').classList.remove('visible'); 
+            renderCurrentSharers();
+            render();
+        });
+
+        // Eventos Globais (Botões dinâmicos)
+        document.body.addEventListener('click', (e) => {
+            // Pagar/Despagar
+            if (e.target.dataset.payId) {
+                e.preventDefault();
+                const id = parseInt(e.target.dataset.payId);
+                const bill = state.bills.find(b => b.id === id);
+                if(bill) bill.isPaid = !bill.isPaid;
+                render();
+            }
+            // Deletar
+            if (e.target.dataset.delId) {
+                e.preventDefault();
+                if(confirm('Tem certeza que quer apagar essa conta?')) {
+                    const id = parseInt(e.target.dataset.delId);
+                    state.bills = state.bills.filter(b => b.id !== id);
+                    render();
+                }
+            }
+            // Notificar (Copiar)
+            if (e.target.dataset.notifyName) {
+                const name = e.target.dataset.notifyName;
+                const val = parseFloat(e.target.dataset.notifyAmount);
+                const msg = `Oie ${name}! O total da sua parte nas contas desse mês ficou em ${formatCurrency(val)}.`;
+                
+                // Tenta copiar (API Clipboard)
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(msg).then(() => alert('Mensagem copiada! Pode colar no WhatsApp.'));
+                } else {
+                    prompt("Copie a mensagem:", msg);
+                }
+            }
+        });
+
+        // Init
+        loadData();
+        render();
+    });
+    </script>
+</body>
+</html>
