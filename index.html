@@ -44,7 +44,6 @@
             color: var(--primary-text);
             min-height: 100vh;
             overflow-x: hidden;
-            /* Respeita a área segura do iPhone (Notch e Home Bar) */
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
         }
@@ -130,7 +129,7 @@
             border-radius: 12px;
             color: #fff; font-size: 1rem;
             outline: none; transition: 0.3s;
-            -webkit-appearance: none; /* Estilo iOS */
+            -webkit-appearance: none;
         }
         input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 15px rgba(0, 242, 255, 0.1); }
 
@@ -147,7 +146,7 @@
         input:checked + .slider { background-color: var(--accent-cyan); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        /* --- ÁREA DE DIVISÃO (EXPANDIR) --- */
+        /* --- ÁREA DE DIVISÃO --- */
         #share-section {
             max-height: 0; overflow: hidden; opacity: 0;
             transition: all 0.4s ease;
@@ -204,6 +203,20 @@
         }
         .owed-item:last-child { border-bottom: none; }
         .btn-notify { background: var(--accent-cyan); color: #000; padding: 8px 15px; border-radius: 8px; font-size: 0.8rem; border: none; }
+
+        /* --- RODAPÉ (ASSINATURA) --- */
+        .app-footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--secondary-text);
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+        .app-footer strong {
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
 
     </style>
 </head>
@@ -291,6 +304,10 @@
             <h3 style="margin-bottom: 15px; color: var(--accent-yellow);">Resumo de Cobranças</h3>
             <div id="owed-summary"></div>
         </section>
+
+        <footer class="app-footer">
+            Desenvolvido por <strong>Adriano</strong>
+        </footer>
     </main>
 
     <script>
@@ -521,9 +538,7 @@
             render();
         });
 
-        // Eventos Globais (Botões dinâmicos)
         document.body.addEventListener('click', (e) => {
-            // Pagar/Despagar
             if (e.target.dataset.payId) {
                 e.preventDefault();
                 const id = parseInt(e.target.dataset.payId);
@@ -531,7 +546,6 @@
                 if(bill) bill.isPaid = !bill.isPaid;
                 render();
             }
-            // Deletar
             if (e.target.dataset.delId) {
                 e.preventDefault();
                 if(confirm('Tem certeza que quer apagar essa conta?')) {
@@ -540,13 +554,10 @@
                     render();
                 }
             }
-            // Notificar (Copiar)
             if (e.target.dataset.notifyName) {
                 const name = e.target.dataset.notifyName;
                 const val = parseFloat(e.target.dataset.notifyAmount);
                 const msg = `Oie ${name}! O total da sua parte nas contas desse mês ficou em ${formatCurrency(val)}.`;
-                
-                // Tenta copiar (API Clipboard)
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(msg).then(() => alert('Mensagem copiada! Pode colar no WhatsApp.'));
                 } else {
@@ -555,7 +566,6 @@
             }
         });
 
-        // Init
         loadData();
         render();
     });
